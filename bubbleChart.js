@@ -1,12 +1,23 @@
+var sliderYear=1800;
+
 // Chart dimensions.
-var margin = { top: 19.5, right: 19.5, bottom: 19.5, left: 39.5 },
+var margin = { top: 10, right: 30, bottom: 30, left: 45 },
     width = 960 - margin.right,
     height = 500 - margin.top - margin.bottom;
 
+//Set the range for scaling
+var lowestIncome = 300,
+    highestIncome = 1e5,
+    lowestAge = 10,
+    highestAge = 85,
+    lowestPopulation = 0,
+    highestPopulation = 5e8
+    maxRadius = 40;
+
 // Various scales. These domains make assumptions of data, naturally.
-var xScale = d3.scale.log().domain([300, 1e5]).range([0, width]),
-    yScale = d3.scale.linear().domain([10, 85]).range([height, 0]),
-    radiusScale = d3.scale.sqrt().domain([0, 5e8]).range([0, 40]),
+var xScale = d3.scale.log().domain([lowestIncome, highestIncome]).range([0, width]),
+    yScale = d3.scale.linear().domain([lowestAge, highestAge]).range([height, 0]),
+    radiusScale = d3.scale.sqrt().domain([lowestPopulation, highestPopulation]).range([0, maxRadius]),
     colorScale = d3.scale.category10();
 
 // The x & y axes.
@@ -37,7 +48,7 @@ svg.append("text")
     .attr("text-anchor", "end")
     .attr("x", width)
     .attr("y", height - 6)
-    .text("income per capita, inflation-adjusted (dollars)");
+    .text("income per capita, (dollars)");
 
 // Add a y-axis label.
 svg.append("text")
@@ -55,7 +66,8 @@ var label = svg.append("text")
     .attr("y", height - 24)
     .attr("x", width)
     .text(1800);
- var format = d3.format(".2s");
+
+var format = d3.format(".2s");
 var tip = d3.tip()
   .attr('class', 'd3-tip')
   .direction('s')
@@ -81,30 +93,34 @@ d3.json("nations.json", function(nations) {
     	.selectAll(".dot")
     		.data(interpolateData(1800))
     	.enter().append("circle")
-    		.on('mouseover', tip.show)
-     		.on('mouseout', tip.hide)
+      .on('mouseover', function () {
+        tip.show
+        d3.select(this)
+          .transition()
+          .duration(500)
+          .attr("r", function(d) { return radiusScale(radius(d))+3; })
+          .attr('stroke-width',3)
+      })
+      .on('mouseout', function () {
+        tip.hide
+        d3.select(this)
+          .transition()
+          .duration(500)
+          .attr("r", function(d) { return radiusScale(radius(d)); })
+          .attr('stroke-width',1)
+      })
+    		//.on('mouseover', tip.show)
+     		//.on('mouseout', tip.hide)
     		.attr("class", function (d) { return "dot " + d.name; })
       	.style("fill", function(d) { return colorScale(color(d)); })
       	.call(position)
       	.sort(order);
 
-  	// Add an overlay for the year label.
-  	var box = label.node().getBBox();
-
-  	var overlay = svg.append("rect")
-    		.attr("class", "overlay")
-    		.attr("x", box.x)
-    		.attr("y", box.y)
-    		.attr("width", box.width)
-    		.attr("height", box.height)
-    		.on("mouseover", enableInteraction);
-
   	// Start a transition that interpolates the data based on year.
   	svg.transition()
-      	.duration(15000)
+      	.duration((20000*(2009-sliderYear))/(2009-1800))
       	.ease("linear")
-      	.tween("year", tweenYear)
-      	.each("end", enableInteraction);
+      	.tween("year", tweenYear);
 
   	// Positions the dots based on data.
   	function position(dot) {
@@ -116,43 +132,24 @@ d3.json("nations.json", function(nations) {
   	// Defines a sort order so that the smallest dots are drawn on top.
   	function order(a, b) { return radius(b) - radius(a); }
 
-  	// After the transition finishes, you can mouseover to change the year.
-  	function enableInteraction() {
-      	var yearScale = d3.scale.linear()
-        	.domain([1800, 2009])
-        	.range([box.x + 10, box.x + box.width - 10])
-        	.clamp(true);
-
-      	// Cancel the current transition, if any.
-      	svg.transition().duration(0);
-
-      	overlay
-          	.on("mouseover", mouseover)
-          	.on("mouseout", mouseout)
-          	.on("mousemove", mousemove)
-          	.on("touchmove", mousemove);
-
-      	function mouseover() { label.classed("active", true); }
-      	function mouseout() { label.classed("active", false); }
-      	function mousemove() { displayYear(yearScale.invert(d3.mouse(this)[0])); }
-  	}
-
   	// Tweens the entire chart by first tweening the year, and then the data.
   	// For the interpolated data, the dots and label are redrawn.
   	function tweenYear() {
-      	var year = d3.interpolateNumber(1800, 2009);
+      	var year = d3.interpolateNumber(sliderYear, 2009);
       	return function(t) { displayYear(year(t)); };
     }
 
   	// Updates the display to show the specified year.
   	function displayYear(year) {
-      	console.log(dot.data(interpolateData(year), key).call(position).sort(order))
+      	//console.log(dot.data(interpolateData(year), key).call(position).sort(order))
         dot.data(interpolateData(year), key).call(position).sort(order);
       	label.text(Math.round(year));
     }
 
   	// Interpolates the dataset for the given (fractional) year.
   	function interpolateData(year) {
+      document.getElementById("myRange").value = year;
+      document.getElementById("yearValue").innerHTML = "Year: "+Math.round(year);
       	return nations.map(function(d) {
           	return {
               	name: d.name,
@@ -174,5 +171,30 @@ d3.json("nations.json", function(nations) {
           	return a[1] * (1 - t) + b[1] * t;
         }
       return a[1];
+    }
+
+    //slider for control the year
+    var slider = document.getElementById("myRange");
+    slider.oninput = function() {
+      document.getElementById("yearValue").innerHTML = "Year: "+Math.round(this.value);
+      sliderYear = this.value;
+      displayYear(sliderYear);
+      pauseFunction();
+    }
+
+    //Play Button to start the animation
+    document.getElementById("playButton").onclick = function() {playFunction()};
+    function playFunction() {
+      svg.transition()
+          .duration((20000*(2009-slider.value))/(2009-1800))
+          .ease("linear")
+          .tween("year", tweenYear);
+    }
+
+    document.getElementById("pauseButton").onclick = function() {pauseFunction()};
+    function pauseFunction(){
+    	// Cancel the current transition, if any.
+    	svg.transition().duration(0);
+      sliderYear = slider.value;
     }
 });

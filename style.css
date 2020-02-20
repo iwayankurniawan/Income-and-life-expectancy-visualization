@@ -1,3 +1,18 @@
+.title{
+  text-align: center;
+  width: 100%;
+}
+
+#myRange{
+  text-align: center;
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+#yearValue{
+  margin: 0px;
+}
+
 #chart {
     font-family: "Helvetica Neue";
   	margin-left: -20px;

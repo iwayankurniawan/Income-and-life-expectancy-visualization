@@ -85,6 +85,14 @@ function key(d) { return d.name; }
 d3.json("nations.json", function(nations) {
   	// A bisector since many nation's data is sparsely-defined.
   	var bisect = d3.bisector(function(d) { return d[0]; });
+/*
+    var regionRect = svg.append("g")
+              .attr("class","regionRects")
+              .selectAll(".regionRect")
+              .data(getRegion)
+              .enter().append("rect")
+              .attr("class", function (d) { return "regionRect" + d.region; })
+            	.style("fill", function(d) { return colorScale(color(d)); })*/
 
   	// Add a dot per nation. Initialize the data at 1800, and set the colors.
   	var dot = svg.append("g")
@@ -143,7 +151,7 @@ d3.json("nations.json", function(nations) {
         dot.data(interpolateData(year), key).call(position).sort(order);
       	label.text(Math.round(year));
     }
-
+  
   	// Interpolates the dataset for the given (fractional) year.
   	function interpolateData(year) {
       document.getElementById("myRange").value = year;

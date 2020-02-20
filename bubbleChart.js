@@ -93,24 +93,22 @@ d3.json("nations.json", function(nations) {
     	.selectAll(".dot")
     		.data(interpolateData(1800))
     	.enter().append("circle")
-      .on('mouseover', function () {
-        tip.show
+      .on('mouseover.tip', tip.show)
+      .on('mouseover.circle', function () {
         d3.select(this)
           .transition()
           .duration(500)
           .attr("r", function(d) { return radiusScale(radius(d))+3; })
-          .attr('stroke-width',3)
+          .attr('stroke-width',3);
       })
-      .on('mouseout', function () {
-        tip.hide
+      .on('mouseout.tip', tip.hide)
+      .on('mouseout.circle', function () {
         d3.select(this)
           .transition()
           .duration(500)
           .attr("r", function(d) { return radiusScale(radius(d)); })
-          .attr('stroke-width',1)
+          .attr('stroke-width',1);
       })
-    		//.on('mouseover', tip.show)
-     		//.on('mouseout', tip.hide)
     		.attr("class", function (d) { return "dot " + d.name; })
       	.style("fill", function(d) { return colorScale(color(d)); })
       	.call(position)

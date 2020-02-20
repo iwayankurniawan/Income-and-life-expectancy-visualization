@@ -1,4 +1,5 @@
 var sliderYear=1800;
+var regionList = [];
 
 // Chart dimensions.
 var margin = { top: 10, right: 30, bottom: 30, left: 45 },
@@ -85,14 +86,18 @@ function key(d) { return d.name; }
 d3.json("nations.json", function(nations) {
   	// A bisector since many nation's data is sparsely-defined.
   	var bisect = d3.bisector(function(d) { return d[0]; });
-/*
+
     var regionRect = svg.append("g")
               .attr("class","regionRects")
               .selectAll(".regionRect")
-              .data(getRegion)
+              .data(getRegionList)
               .enter().append("rect")
-              .attr("class", function (d) { return "regionRect" + d.region; })
-            	.style("fill", function(d) { return colorScale(color(d)); })*/
+              .attr("width",10)
+              .attr("height",10)
+              .attr("x",10)
+              .attr("y",10)
+              .attr("class", function (d) { return "regionRect " + d; })
+            	.style("fill", function(d) { return colorScale(d); })
 
   	// Add a dot per nation. Initialize the data at 1800, and set the colors.
   	var dot = svg.append("g")
@@ -151,7 +156,7 @@ d3.json("nations.json", function(nations) {
         dot.data(interpolateData(year), key).call(position).sort(order);
       	label.text(Math.round(year));
     }
-  
+
   	// Interpolates the dataset for the given (fractional) year.
   	function interpolateData(year) {
       document.getElementById("myRange").value = year;
@@ -179,6 +184,20 @@ d3.json("nations.json", function(nations) {
       return a[1];
     }
 
+    function getRegionList(){
+      nations.map(function(d) {
+        var temp = d.region;
+        var found = regionList.find(function(element) {
+          return element === temp
+        });
+          if (found == undefined){
+            regionList.push(temp);
+          }
+        });
+        return regionList;
+      }
+
+//---------------------Control The Slider, Button, Filter----------------------
     //slider for control the year
     var slider = document.getElementById("myRange");
     slider.oninput = function() {

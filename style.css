@@ -19,6 +19,9 @@
   	height: 506px;
 }
 
+.legend{
+  margin-top: 15px;
+}
 
 .dot { stroke: #000; }
 

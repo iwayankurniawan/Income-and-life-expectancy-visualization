@@ -2,9 +2,9 @@ var sliderYear=1800;
 var regionList = [];
 
 // Chart dimensions.
-var margin = { top: 10, right: 30, bottom: 30, left: 45 },
-    width = 960 - margin.right,
-    height = 500 - margin.top - margin.bottom;
+var margin = { top: 20, right: 30, bottom: 30, left: 45 },
+    width = 1000 - margin.right,
+    height = 560 - margin.top - margin.bottom;
 
 //Set the range for scaling
 var lowestIncome = 300,
@@ -21,6 +21,7 @@ var xScale = d3.scale.log().domain([lowestIncome, highestIncome]).range([0, widt
     radiusScale = d3.scale.sqrt().domain([lowestPopulation, highestPopulation]).range([0, maxRadius]),
     colorScale = d3.scale.category10();
 
+var regionScale = d3.scale.log().domain([0, 5]).range([0, width])
 // The x & y axes.
 var xAxis = d3.svg.axis().scale(xScale).orient("bottom").ticks(12, d3.format(",d"));
 var yAxis = d3.svg.axis().scale(yScale).orient("left");
@@ -87,17 +88,27 @@ d3.json("nations.json", function(nations) {
   	// A bisector since many nation's data is sparsely-defined.
   	var bisect = d3.bisector(function(d) { return d[0]; });
 
-    var regionRect = svg.append("g")
+    var regionRect = d3.select(".legend").append("svg")
+              .attr("width", 250)
+              .attr("height", 100)
               .attr("class","regionRects")
               .selectAll(".regionRect")
               .data(getRegionList)
-              .enter().append("rect")
+              .enter().append("g")
+              .attr("class", function (d) { return "regionRect " + d; });
+
+
+              regionRect.append("rect")
               .attr("width",10)
               .attr("height",10)
+              .attr("y", function(d,i){ return 10 + i*(20)})
               .attr("x",10)
-              .attr("y",10)
-              .attr("class", function (d) { return "regionRect " + d; })
-            	.style("fill", function(d) { return colorScale(d); })
+            	.style("fill", function(d) { return colorScale(d);});
+
+              regionRect.append("text")
+                .attr("y", function(d,i){ return 20 + i*(20)})
+                .attr("x",25)
+                .text(function(d){ return d;})
 
   	// Add a dot per nation. Initialize the data at 1800, and set the colors.
   	var dot = svg.append("g")

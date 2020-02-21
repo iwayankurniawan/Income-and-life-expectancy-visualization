@@ -86,29 +86,42 @@ function key(d) { return d.name; }
 // Load the data.
 d3.json("nations.json", function(nations) {
   	// A bisector since many nation's data is sparsely-defined.
-  	var bisect = d3.bisector(function(d) { return d[0]; });
+  	var bisect = d3.bisector(function(d) {return d[0];});
 
-    var regionRect = d3.select(".legend").append("svg")
-              .attr("width", 250)
-              .attr("height", 100)
-              .attr("class","regionRects")
-              .selectAll(".regionRect")
-              .data(getRegionList)
-              .enter().append("g")
-              .attr("class", function (d) { return "regionRect " + d; });
+    //Create the div to host checkbox and svg
+    var createDivForLegend = d3.select(".legend").append("div")
+                                .attr("class","row listLegends")
+                                .selectAll(".listLegend")
+                                .data(getRegionList)
+                                .enter().append("div")
+                                .attr("onclick","checkBoxFunction()")
+                                .attr("class", function (d) { return "listLegend " + d;});
 
+        //Create the checkbox
+        createDivForLegend.append("input")
+                          .attr("type","checkbox")
+                          .attr("id",function (d) { return "check"+ d; })
+                          .attr("value",function (d) { return d; });
 
-              regionRect.append("rect")
-              .attr("width",10)
-              .attr("height",10)
-              .attr("y", function(d,i){ return 10 + i*(20)})
-              .attr("x",10)
-            	.style("fill", function(d) { return colorScale(d);});
+    //Create the svg to host rect and text
+    var regionRect = createDivForLegend.append("svg")
+                                      .attr("width", 230)
+                                      .attr("height", 30)
+                                      .attr("class","regionRects")
+                                      .attr("class", function (d) { return "regionRect " + d; });
+        //Create the rect
+        regionRect.append("rect")
+                  .attr("width",10)
+                  .attr("height",10)
+                  .attr("y", 7)
+                  .attr("x",10)
+                	.style("fill", function(d) { return colorScale(d);});
 
-              regionRect.append("text")
-                .attr("y", function(d,i){ return 20 + i*(20)})
-                .attr("x",25)
-                .text(function(d){ return d;})
+        //Create the legend text
+        regionRect.append("text")
+                  .attr("y",17)
+                  .attr("x",25)
+                  .text(function(d){ return d;})
 
   	// Add a dot per nation. Initialize the data at 1800, and set the colors.
   	var dot = svg.append("g")
@@ -122,6 +135,7 @@ d3.json("nations.json", function(nations) {
         d3.select(this)
           .transition()
           .duration(500)
+          //.style("fill","#f0f0f5")
           .attr("r", function(d) { return radiusScale(radius(d))+3; })
           .attr('stroke-width',3);
       })
@@ -130,10 +144,12 @@ d3.json("nations.json", function(nations) {
         d3.select(this)
           .transition()
           .duration(500)
+          //.style("fill", function(d) { return colorScale(color(d));})
           .attr("r", function(d) { return radiusScale(radius(d)); })
           .attr('stroke-width',1);
       })
-    		.attr("class", function (d) { return "dot " + d.name; })
+    		.attr("class", function (d) { return "dot " + d.name + " region"+ d.region; })
+        .attr("id",function (d) { return d.region; })
       	.style("fill", function(d) { return colorScale(color(d)); })
       	.call(position)
       	.sort(order);
@@ -233,4 +249,45 @@ d3.json("nations.json", function(nations) {
     	svg.transition().duration(0);
       sliderYear = slider.value;
     }
+
+    var checkbox = document.getElementById('checkSub-Saharan')
+
+  checkbox.addEventListener('change', (event) => {
+    if (event.target.checked) {
+      alert('checked');
+    } else {
+      alert('not checked');
+    }
+  })
+  
+  $(document).ready(function(){
+    $('input[type=checkbox]').click(function(){
+      switch(this.id) {
+        case "Sub-Saharan Africa":
+          d3.selectAll(".regionSub-Saharan")
+            .transition()
+            .duration(500)
+            .style("fill","#f0f0f5")
+            .style("opacity","0.2");
+          break;
+        case "South Asia":
+          // code block
+          break;
+        case "Middle East & North Africa":
+          // code block
+          break;
+        case "America":
+          // code block
+          break;
+        case "Europe & Central Asia":
+          // code block
+          break;
+        case "East Asia & Pacific":
+          // code block
+          break;
+        default:
+          // code block
+      }
+    });
+  });
 });

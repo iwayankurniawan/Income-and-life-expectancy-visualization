@@ -85,6 +85,7 @@ function key(d) { return d.name; }
 
 // Load the data.
 d3.json("nations.json", function(nations) {
+  console.log(nations);
   	// A bisector since many nation's data is sparsely-defined.
   	var bisect = d3.bisector(function(d) {return d[0];});
 
@@ -94,13 +95,13 @@ d3.json("nations.json", function(nations) {
                                 .selectAll(".listLegend")
                                 .data(getRegionList)
                                 .enter().append("div")
-                                .attr("onclick","checkBoxFunction()")
                                 .attr("class", function (d) { return "listLegend " + d;});
 
         //Create the checkbox
         createDivForLegend.append("input")
                           .attr("type","checkbox")
                           .attr("id",function (d) { return "check"+ d; })
+                          .attr("checked","true")
                           .attr("value",function (d) { return d; });
 
     //Create the svg to host rect and text
@@ -250,44 +251,104 @@ d3.json("nations.json", function(nations) {
       sliderYear = slider.value;
     }
 
-    var checkbox = document.getElementById('checkSub-Saharan')
-
-  checkbox.addEventListener('change', (event) => {
-    if (event.target.checked) {
-      alert('checked');
-    } else {
-      alert('not checked');
-    }
-  })
-  
-  $(document).ready(function(){
-    $('input[type=checkbox]').click(function(){
-      switch(this.id) {
-        case "Sub-Saharan Africa":
-          d3.selectAll(".regionSub-Saharan")
-            .transition()
-            .duration(500)
-            .style("fill","#f0f0f5")
-            .style("opacity","0.2");
-          break;
-        case "South Asia":
-          // code block
-          break;
-        case "Middle East & North Africa":
-          // code block
-          break;
-        case "America":
-          // code block
-          break;
-        case "Europe & Central Asia":
-          // code block
-          break;
-        case "East Asia & Pacific":
-          // code block
-          break;
-        default:
-          // code block
-      }
-    });
-  });
+    $(document).ready(function(){
+       $('input[type="checkbox"]').click(function(){
+           if($(this).prop("checked") == true){
+             switch(this.value) {
+               case "Sub-Saharan Africa":
+                 d3.selectAll(".regionSub-Saharan")
+                   .transition()
+                   .duration(500)
+                   .style("fill", function(d) { return colorScale(color(d)); })
+                   .style("opacity","1");
+                 break;
+               case "South Asia":
+                 d3.selectAll(".regionSouth")
+                   .transition()
+                   .duration(500)
+                   .style("fill", function(d) { return colorScale(color(d)); })
+                   .style("opacity","1");
+                 break;
+               case "Middle East & North Africa":
+                 d3.selectAll(".regionMiddle")
+                   .transition()
+                   .duration(500)
+                   .style("fill", function(d) { return colorScale(color(d)); })
+                   .style("opacity","1");
+                 break;
+               case "America":
+                 d3.selectAll(".regionAmerica")
+                   .transition()
+                   .duration(500)
+                   .style("fill", function(d) { return colorScale(color(d)); })
+                   .style("opacity","1");
+                 break;
+               case "Europe & Central Asia":
+                 d3.selectAll(".regionEurope")
+                   .transition()
+                   .duration(500)
+                   .style("fill", function(d) { return colorScale(color(d)); })
+                   .style("opacity","1");
+                 break;
+               case "East Asia & Pacific":
+                 d3.selectAll(".regionEast")
+                   .transition()
+                   .duration(500)
+                   .style("fill", function(d) { return colorScale(color(d)); })
+                   .style("opacity","1");
+                 break;
+               default:
+                 // code block
+             }
+           }
+           else if($(this).prop("checked") == false){
+           switch(this.value) {
+             case "Sub-Saharan Africa":
+               d3.selectAll(".regionSub-Saharan")
+                 .transition()
+                 .duration(500)
+                 .style("fill","#f0f0f5")
+                 .style("opacity","0.1");
+               break;
+             case "South Asia":
+               d3.selectAll(".regionSouth")
+                 .transition()
+                 .duration(500)
+                 .style("fill","#f0f0f5")
+                 .style("opacity","0.1");
+               break;
+             case "Middle East & North Africa":
+               d3.selectAll(".regionMiddle")
+                 .transition()
+                 .duration(500)
+                 .style("fill","#f0f0f5")
+                 .style("opacity","0.1");
+               break;
+             case "America":
+               d3.selectAll(".regionAmerica")
+                 .transition()
+                 .duration(500)
+                 .style("fill","#f0f0f5")
+                 .style("opacity","0.1");
+               break;
+             case "Europe & Central Asia":
+               d3.selectAll(".regionEurope")
+                 .transition()
+                 .duration(500)
+                 .style("fill","#f0f0f5")
+                 .style("opacity","0.1");
+               break;
+             case "East Asia & Pacific":
+               d3.selectAll(".regionEast")
+                 .transition()
+                 .duration(500)
+                 .style("fill","#f0f0f5")
+                 .style("opacity","0.1");
+               break;
+             default:
+               // code block
+           }
+       }
+       });
+   });
 });

@@ -82,7 +82,7 @@ var svg = d3.select("#svg_chart").append("svg")
 function x(d) { return d.income; }
 function y(d) { return d.lifeExpectancy; }
 function radius(d) { return d.population; }
-function color(d) { return d.region; }
+function color(d) { return d.continent; }
 function key(d) { return d.name; }
 
 // Reading the input data
@@ -101,9 +101,19 @@ d3.json("data.json").then(function (data) {
 		})
 	});
 
-	// Console log the formatted data
-	console.log(fdata);
 
+	// Console log the formatted data
+	console.log(fdata[0]);
+/*
+	function download(content, fileName, contentType) {
+    var a = document.createElement("a");
+    var file = new Blob([content], {type: contentType});
+    a.href = URL.createObjectURL(file);
+    a.download = fileName;
+    a.click();
+}
+download(JSON.stringify(fdata), 'json.txt', 'text/plain');
+*/
 	// invoke the circle that draws the scatterplot
 	// the argument corresponds to the year
 	draw_circles(1810);
@@ -131,6 +141,7 @@ function draw_circles(year) {
 
 	var circle_update = svg.selectAll("circle")
 		.data(fdata[year]);
+
 
 	// TODO all your rendering D3 code here
 

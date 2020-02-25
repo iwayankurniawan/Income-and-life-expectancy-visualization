@@ -1,6 +1,8 @@
 var sliderYear=1800;
 var regionList = [];
 
+var fdata; // The formatted data is a global variable
+
 // Chart dimensions.
 var margin = { top: 20, right: 30, bottom: 30, left: 45 },
     width = 1000 - margin.right,
@@ -74,18 +76,18 @@ var tip = d3.tip()
   .attr('class', 'd3-tip')
   .direction('s')
   .html(function(d) {
-    return "<p><strong>" + d.name + "</strong></p><p><strong>Population: </strong>" + format(d.population) + "</p>";
+    return "<p><strong>" + d.country + "</strong></p><p><strong>Population: </strong>" + format(d.population) + "</p>";
   })
 // Various accessors that specify the four dimensions of data to visualize.
 function x(d) { return d.income; }
-function y(d) { return d.lifeExpectancy; }
+function y(d) { return d.life_exp; }
 function radius(d) { return d.population; }
-function color(d) { return d.region; }
-function key(d) { return d.name; }
+function color(d) { return d.continent; }
+function key(d) { return d.country; }
 
 // Load the data.
-d3.json("nations.json", function(nations) {
-  console.log(nations);
+d3.json("data.json", function(data) {
+    //console.log(nations);
   	// A bisector since many nation's data is sparsely-defined.
   	var bisect = d3.bisector(function(d) {return d[0];});
 
@@ -97,12 +99,12 @@ d3.json("nations.json", function(nations) {
                                 .enter().append("div")
                                 .attr("class", function (d) { return "listLegend " + d;});
 
-        //Create the checkbox
-        createDivForLegend.append("input")
-                          .attr("type","checkbox")
-                          .attr("id",function (d) { return "check"+ d; })
-                          .attr("checked","true")
-                          .attr("value",function (d) { return d; });
+    //Create the checkbox
+    createDivForLegend.append("input")
+                      .attr("type","checkbox")
+                      .attr("id",function (d) { return "check"+ d; })
+                      .attr("checked","true")
+                      .attr("value",function (d) { return d; });
 
     //Create the svg to host rect and text
     var regionRect = createDivForLegend.append("svg")
@@ -110,19 +112,19 @@ d3.json("nations.json", function(nations) {
                                       .attr("height", 30)
                                       .attr("class","regionRects")
                                       .attr("class", function (d) { return "regionRect " + d; });
-        //Create the rect
-        regionRect.append("rect")
-                  .attr("width",10)
-                  .attr("height",10)
-                  .attr("y", 7)
-                  .attr("x",10)
-                	.style("fill", function(d) { return colorScale(d);});
+    //Create the rect
+    regionRect.append("rect")
+              .attr("width",10)
+              .attr("height",10)
+              .attr("y", 7)
+              .attr("x",10)
+            	.style("fill", function(d) { return colorScale(d);});
 
-        //Create the legend text
-        regionRect.append("text")
-                  .attr("y",17)
-                  .attr("x",25)
-                  .text(function(d){ return d;})
+    //Create the legend text
+    regionRect.append("text")
+              .attr("y",17)
+              .attr("x",25)
+              .text(function(d){ return d;})
 
   	// Add a dot per nation. Initialize the data at 1800, and set the colors.
   	var dot = svg.append("g")
@@ -149,8 +151,8 @@ d3.json("nations.json", function(nations) {
           .attr("r", function(d) { return radiusScale(radius(d)); })
           .attr('stroke-width',1);
       })
-    		.attr("class", function (d) { return "dot " + d.name + " region"+ d.region; })
-        .attr("id",function (d) { return d.region; })
+    		.attr("class", function (d) { return "dot " + d.country + " region"+ d.continent; })
+        .attr("id",function (d) { return d.continent; })
       	.style("fill", function(d) { return colorScale(color(d)); })
       	.call(position)
       	.sort(order);
@@ -189,7 +191,26 @@ d3.json("nations.json", function(nations) {
   	function interpolateData(year) {
       document.getElementById("myRange").value = year;
       document.getElementById("yearValue").innerHTML = "Year: "+Math.round(year);
-      	return nations.map(function(d) {
+
+      // Cleanup data
+      fdata = data.map(function (year_data) {
+        // retain the countries for which both the income and life_exp is specified
+        return year_data["countries"].filter(function (country) {
+          var existing_data = (country.income && country.life_exp);
+          return existing_data
+        }).map(function (country) {
+          // convert income and life_exp into integers (everything read from a file defaults to an string)
+          country.income = +country.income;
+          country.life_exp = +country.life_exp;
+          return country;
+        })
+      });
+      var value = year-1800;
+
+      return fdata[Math.round(value)];
+      //return fdata[year-1800];
+
+      /*	return nations.map(function(d) {
           	return {
               	name: d.name,
               	region: d.region,
@@ -197,7 +218,7 @@ d3.json("nations.json", function(nations) {
               	population: interpolateValues(d.population, year),
               	lifeExpectancy: interpolateValues(d.lifeExpectancy, year)
             };
-        });
+        });*/
     }
 
   	// Finds (and possibly interpolates) the value for the specified year.
@@ -213,8 +234,8 @@ d3.json("nations.json", function(nations) {
     }
 
     function getRegionList(){
-      nations.map(function(d) {
-        var temp = d.region;
+      interpolateData(1800).map(function(d) {
+        var temp = d.continent;
         var found = regionList.find(function(element) {
           return element === temp
         });
@@ -255,43 +276,29 @@ d3.json("nations.json", function(nations) {
        $('input[type="checkbox"]').click(function(){
            if($(this).prop("checked") == true){
              switch(this.value) {
-               case "Sub-Saharan Africa":
-                 d3.selectAll(".regionSub-Saharan")
+               case "africa":
+                 d3.selectAll(".regionafrica")
                    .transition()
                    .duration(500)
                    .style("fill", function(d) { return colorScale(color(d)); })
                    .style("opacity","1");
                  break;
-               case "South Asia":
-                 d3.selectAll(".regionSouth")
+               case "asia":
+                 d3.selectAll(".regionasia")
                    .transition()
                    .duration(500)
                    .style("fill", function(d) { return colorScale(color(d)); })
                    .style("opacity","1");
                  break;
-               case "Middle East & North Africa":
-                 d3.selectAll(".regionMiddle")
+               case "americas":
+                 d3.selectAll(".regionamericas")
                    .transition()
                    .duration(500)
                    .style("fill", function(d) { return colorScale(color(d)); })
                    .style("opacity","1");
                  break;
-               case "America":
-                 d3.selectAll(".regionAmerica")
-                   .transition()
-                   .duration(500)
-                   .style("fill", function(d) { return colorScale(color(d)); })
-                   .style("opacity","1");
-                 break;
-               case "Europe & Central Asia":
-                 d3.selectAll(".regionEurope")
-                   .transition()
-                   .duration(500)
-                   .style("fill", function(d) { return colorScale(color(d)); })
-                   .style("opacity","1");
-                 break;
-               case "East Asia & Pacific":
-                 d3.selectAll(".regionEast")
+               case "europe":
+                 d3.selectAll(".regioneurope")
                    .transition()
                    .duration(500)
                    .style("fill", function(d) { return colorScale(color(d)); })
@@ -303,43 +310,29 @@ d3.json("nations.json", function(nations) {
            }
            else if($(this).prop("checked") == false){
            switch(this.value) {
-             case "Sub-Saharan Africa":
-               d3.selectAll(".regionSub-Saharan")
+             case "africa":
+               d3.selectAll(".regionafrica")
                  .transition()
                  .duration(500)
                  .style("fill","#f0f0f5")
                  .style("opacity","0.1");
                break;
-             case "South Asia":
-               d3.selectAll(".regionSouth")
+             case "asia":
+               d3.selectAll(".regionasia")
                  .transition()
                  .duration(500)
                  .style("fill","#f0f0f5")
                  .style("opacity","0.1");
                break;
-             case "Middle East & North Africa":
-               d3.selectAll(".regionMiddle")
+             case "americas":
+               d3.selectAll(".regionamericas")
                  .transition()
                  .duration(500)
                  .style("fill","#f0f0f5")
                  .style("opacity","0.1");
                break;
-             case "America":
-               d3.selectAll(".regionAmerica")
-                 .transition()
-                 .duration(500)
-                 .style("fill","#f0f0f5")
-                 .style("opacity","0.1");
-               break;
-             case "Europe & Central Asia":
-               d3.selectAll(".regionEurope")
-                 .transition()
-                 .duration(500)
-                 .style("fill","#f0f0f5")
-                 .style("opacity","0.1");
-               break;
-             case "East Asia & Pacific":
-               d3.selectAll(".regionEast")
+             case "europe":
+               d3.selectAll(".regioneurope")
                  .transition()
                  .duration(500)
                  .style("fill","#f0f0f5")

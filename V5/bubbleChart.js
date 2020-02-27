@@ -1,5 +1,5 @@
 var sliderYear=1800;
-var regionList = [];
+var regionList = [];//Store continent list
 
 var fdata; // The formatted data is a global variable
 
@@ -10,8 +10,8 @@ var margin = { top: 20, right: 30, bottom: 30, left: 45 },
 
 //Set the range for scaling
 var lowestIncome = 142,
-    highestIncome = 150000,
-    lowestAge = 10,
+    highestIncome = 190000,
+    lowestAge = 0,
     highestAge = 90,
     lowestPopulation = 0,
     highestPopulation = 5e8
@@ -94,9 +94,6 @@ function key(d) { return d.country; }
 
 // Reading the input data
 d3.json("data.json").then(function (data) {
-  	// A bisector since many nation's data is sparsely-defined.
-  	var bisect = d3.bisector(function(d) {return d[0];});
-
     //Create the div to host checkbox and svg
     var createDivForLegend = d3.select(".legend").append("div")
                                 .attr("class","row listLegends")
@@ -139,6 +136,7 @@ d3.json("data.json").then(function (data) {
     		.data(interpolateData(1800))
     	.enter().append("circle")
       .on('mouseover.tip', function(d){
+        //When mouse hover in to the dot create tooltips
         div
         .html("<strong>Country: </strong>"+d.country + "<br/>" + "<strong>Population: </strong>"+ format(d.population) +"<br/>"+ "<strong>Life Expectancy: </strong>"+d.life_exp+" Years" +"<br/>"+"<strong>Income: </strong>"+d.income +" Dollars")
         .style("left", d3.event.pageX + "px")
@@ -146,6 +144,7 @@ d3.json("data.json").then(function (data) {
         .style("opacity","1");
       })
       .on('mouseover.circle', function () {
+        //Change the size of the dots when cursor hover in to the dot
         d3.select(this)
           .transition()
           .duration(500)
@@ -193,7 +192,6 @@ d3.json("data.json").then(function (data) {
 
   	// Updates the display to show the specified year.
   	function displayYear(year) {
-      	//console.log(dot.data(interpolateData(year), key).call(position).sort(order))
         dot.data(interpolateData(year), key).call(position).sort(order);
       	label.text(Math.round(year));
     }
@@ -221,6 +219,7 @@ d3.json("data.json").then(function (data) {
       return fdata[Math.round(value)];
     }
 
+    //Get list of continent
     function getRegionList(){
       interpolateData(1800).map(function(d) {
         var temp = d.continent;
@@ -239,9 +238,12 @@ d3.json("data.json").then(function (data) {
     var slider = document.getElementById("myRange");
     slider.oninput = function() {
       document.getElementById("yearValue").innerHTML = "Year: "+Math.round(this.value);
+      //Update the slider value
       sliderYear = this.value;
       displayYear(sliderYear);
-      pauseFunction();
+      d3.select("button").property("value", "Pause");
+      play();
+
     }
 
     // callback function when the button is pressed
@@ -260,14 +262,21 @@ d3.json("data.json").then(function (data) {
     	else {
     		d3.select("button").text("Play");
         d3.select("button").property("value", "Play");
-        // Cancel the current transition, if any.
-      	svg.transition().duration(0);
+        //Update the value based on slider value and pause
         sliderYear = slider.value;
+        svg.transition()
+            .duration((30000*(2009-slider.value))/(2009-1800))
+            .ease(d3.easeLinear)
+            .tween("year", tweenYear);
+        // Cancel the current transition, if any.
+        svg.transition().duration(0);
     	}
     }
 
+    //Filter the countries based on continent
     $(document).ready(function(){
        $('input[type="checkbox"]').click(function(){
+         //When the checkbox checked, give color and full trasparancey to the continent
            if($(this).prop("checked") == true){
              switch(this.value) {
                case "africa":
@@ -302,6 +311,7 @@ d3.json("data.json").then(function (data) {
                  // code block
              }
            }
+           //when the checkbox unchecked, give white color to the dots and reduce the transparancy
            else if($(this).prop("checked") == false){
            switch(this.value) {
              case "africa":
